@@ -12,6 +12,8 @@ For business inquiries, please visit our website and submit the form: [NVIDIA Re
 
 ## Release notes
 
+> This is a version of StyleGAN3 which has Weights and Biases support for tracking of training results and model checkpoints. - Tanishq
+
 This repository is an updated version of [stylegan2-ada-pytorch](https://github.com/NVlabs/stylegan2-ada-pytorch), with several new features:
 - Alias-free generator architecture and training configurations (`stylegan3-t`, `stylegan3-r`).
 - Tools for interactive visualization (`visualizer.py`), spectral analysis (`avg_spectra.py`), and video generation (`gen_video.py`).
