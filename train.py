@@ -22,6 +22,8 @@ from metrics import metric_main
 from torch_utils import training_stats
 from torch_utils import custom_ops
 
+import wandb
+
 #----------------------------------------------------------------------------
 
 def subprocess_fn(rank, c, temp_dir):
@@ -276,6 +278,11 @@ def main(**kwargs):
     desc = f'{opts.cfg:s}-{dataset_name:s}-gpus{c.num_gpus:d}-batch{c.batch_size:d}-gamma{c.loss_kwargs.r1_gamma:g}'
     if opts.desc is not None:
         desc += f'-{opts.desc}'
+
+    # wandb
+    run = wandb.init(project="stylegan")
+    wandb.config.update(opts)
+    c.wandb_run = run
 
     # Launch.
     launch_training(c=c, desc=desc, outdir=opts.outdir, dry_run=opts.dry_run)
