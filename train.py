@@ -26,7 +26,7 @@ import wandb
 
 #----------------------------------------------------------------------------
 
-def subprocess_fn(rank, c, temp_dir, wandb_run):
+def subprocess_fn(rank, c, temp_dir):
     dnnlib.util.Logger(file_name=os.path.join(c.run_dir, 'log.txt'), file_mode='a', should_flush=True)
 
     # Init torch.distributed.
@@ -45,12 +45,17 @@ def subprocess_fn(rank, c, temp_dir, wandb_run):
     if rank != 0:
         custom_ops.verbosity = 'none'
 
+    if rank == 0:
+        # wandb
+        wandb_run = wandb.init(project="stylegan")
+        wandb.config.update(c)
+
     # Execute training loop.
     training_loop.training_loop(rank=rank, wandb_run=wandb_run, **c)
 
 #----------------------------------------------------------------------------
 
-def launch_training(c, desc, outdir, dry_run, wandb_run):
+def launch_training(c, desc, outdir, dry_run):
     dnnlib.util.Logger(should_flush=True)
 
     # Pick output directory.
@@ -95,9 +100,9 @@ def launch_training(c, desc, outdir, dry_run, wandb_run):
     torch.multiprocessing.set_start_method('spawn')
     with tempfile.TemporaryDirectory() as temp_dir:
         if c.num_gpus == 1:
-            subprocess_fn(rank=0, c=c, temp_dir=temp_dir, wandb_run=wandb_run)
+            subprocess_fn(rank=0, c=c, temp_dir=temp_dir)
         else:
-            torch.multiprocessing.spawn(fn=subprocess_fn, args=(c, temp_dir, wandb_run), nprocs=c.num_gpus)
+            torch.multiprocessing.spawn(fn=subprocess_fn, args=(c, temp_dir), nprocs=c.num_gpus)
 
 #----------------------------------------------------------------------------
 
@@ -279,12 +284,10 @@ def main(**kwargs):
     if opts.desc is not None:
         desc += f'-{opts.desc}'
 
-    # wandb
-    run = wandb.init(project="stylegan")
-    wandb.config.update(opts)
+
 
     # Launch.
-    launch_training(c=c, desc=desc, outdir=opts.outdir, dry_run=opts.dry_run, wandb_run=run)
+    launch_training(c=c, desc=desc, outdir=opts.outdir, dry_run=opts.dry_run)
 
 #----------------------------------------------------------------------------
 
