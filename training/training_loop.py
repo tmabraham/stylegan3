@@ -390,7 +390,7 @@ def training_loop(
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
                 stats_metrics.update(result_dict.results)
         del snapshot_data # conserve memory
-        c.wandb.log(stats_metrics)
+        wandb_run.log(stats_metrics)
 
         # Collect statistics.
         for phase in phases:
