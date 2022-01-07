@@ -282,7 +282,6 @@ def main(**kwargs):
     # wandb
     run = wandb.init(project="stylegan")
     wandb.config.update(opts)
-    c.wandb_run = run
 
     # Launch.
     launch_training(c=c, desc=desc, outdir=opts.outdir, dry_run=opts.dry_run, wandb_run=run)
