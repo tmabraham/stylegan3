@@ -226,7 +226,7 @@ def training_loop(
         grid_c = torch.from_numpy(labels).to(device).split(batch_gpu)
         images = torch.cat([G_ema(z=z, c=c, noise_mode='const').cpu() for z, c in zip(grid_z, grid_c)]).numpy()
         save_image_grid(images, os.path.join(run_dir, 'fakes_init.png'), drange=[-1,1], grid_size=grid_size)
-        wandb_run.log({'fakes': wandb.Image(os.path.join(run_dir, 'fakes_init.png'))})
+        wandb_run.log({'fakes_init': wandb.Image(os.path.join(run_dir, 'fakes_init.png'))})
 
 
     # Initialize logs.
@@ -357,7 +357,7 @@ def training_loop(
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             images = torch.cat([G_ema(z=z, c=c, noise_mode='const').cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
-            wandb_run.log({'fakes': wandb.Image(os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'))})
+            wandb_run.log({'fakes': wandb.Image(os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'))}, step=cur_nimg)
 
         # Save network snapshot.
         snapshot_pkl = None
@@ -378,6 +378,9 @@ def training_loop(
                 with open(snapshot_pkl, 'wb') as f:
                     pickle.dump(snapshot_data, f)
                 wandb_run.save(snapshot_pkl)
+                artifact = wandb.Artifact(name='network-snapshot', type='model')
+                artifact.add_file(snapshot_pkl)
+                wand_run.log_artifact(artifact)
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):
@@ -390,7 +393,7 @@ def training_loop(
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
                 stats_metrics.update(result_dict.results)
         del snapshot_data # conserve memory
-        wandb_run.log(stats_metrics)
+        wandb_run.log(stats_metrics, step=cur_nimg)
 
         # Collect statistics.
         for phase in phases:
@@ -401,7 +404,7 @@ def training_loop(
             training_stats.report0('Timing/' + phase.name, value)
         stats_collector.update()
         stats_dict = stats_collector.as_dict()
-        wandb_run.log(stats_dict)
+        wandb_run.log(stats_dict, step=cur_nimg)
 
         # Update logs.
         timestamp = time.time()
