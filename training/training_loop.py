@@ -380,7 +380,7 @@ def training_loop(
                 wandb_run.save(snapshot_pkl)
                 artifact = wandb.Artifact(name='network-snapshot', type='model')
                 artifact.add_file(snapshot_pkl)
-                wand_run.log_artifact(artifact)
+                wandb_run.log_artifact(artifact)
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):
