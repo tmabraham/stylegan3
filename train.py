@@ -49,9 +49,11 @@ def subprocess_fn(rank, c, temp_dir):
         # wandb
         wandb_run = wandb.init(project="stylegan")
         wandb.config.update(c)
-
-    # Execute training loop.
-    training_loop.training_loop(rank=rank, wandb_run=wandb_run, **c)
+        # Execute training loop.
+        training_loop.training_loop(rank=rank, wandb_run=wandb_run, **c)
+    else:
+        # Execute training loop.
+        training_loop.training_loop(rank=rank, **c)
 
 #----------------------------------------------------------------------------
 

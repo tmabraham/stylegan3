@@ -393,7 +393,8 @@ def training_loop(
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
                 stats_metrics.update(result_dict.results)
         del snapshot_data # conserve memory
-        wandb_run.log(stats_metrics, step=cur_nimg)
+        
+        if rank == 0: wandb_run.log(stats_metrics, step=cur_nimg)
 
         # Collect statistics.
         for phase in phases:
@@ -404,7 +405,7 @@ def training_loop(
             training_stats.report0('Timing/' + phase.name, value)
         stats_collector.update()
         stats_dict = stats_collector.as_dict()
-        wandb_run.log(stats_dict, step=cur_nimg)
+        if rank == 0: wandb_run.log(stats_dict, step=cur_nimg)
 
         # Update logs.
         timestamp = time.time()
